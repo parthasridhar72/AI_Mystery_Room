@@ -1,6 +1,6 @@
 # AI Mystery Room
 
-A single-player fictional mystery investigation app. The workspace uses **plain JavaScript** throughout: React + Vite in `client/`, and Node.js + Express in `server/`. No TypeScript is used.
+A single-player fictional mystery investigation app. The workspace uses **plain JavaScript** throughout: React + Vite in `client/`, and Node.js + Express in `server/`.
 
 ## Requirements
 
