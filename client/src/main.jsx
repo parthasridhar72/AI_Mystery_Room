@@ -12,7 +12,10 @@ import "./styles.css";
 import { InvestigationPage } from "./Investigation.jsx";
 import Icon from "./Icon.jsx";
 
-const API = import.meta.env.VITE_API_URL;
+const API_ROOT = (
+  import.meta.env.VITE_API_URL || window.location.origin
+).replace(/\/+$/, "");
+const API = API_ROOT.endsWith("/api/v1") ? API_ROOT : `${API_ROOT}/api/v1`;
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, {
     credentials: "include",

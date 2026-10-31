@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { rateLimit } from "express-rate-limit";
 import { z } from "zod";
 import {
@@ -24,13 +26,16 @@ import {
 
 const app = express();
 app.disable("x-powered-by");
+if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-    credentials: true,
-  }),
-);
+if (process.env.CLIENT_ORIGIN) {
+  app.use(
+    cors({
+      origin: process.env.CLIENT_ORIGIN,
+      credentials: true,
+    }),
+  );
+}
 app.use(express.json({ limit: "32kb" }));
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -241,6 +246,17 @@ app.delete("/api/v1/cases/:caseId", async (req, res) => {
   await deleteCase(c);
   res.status(204).end();
 });
+if (process.env.NODE_ENV === "production") {
+  const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
+  const clientDirectory = path.resolve(currentDirectory, "../../client/dist");
+  app.use(express.static(clientDirectory));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    res.sendFile(path.join(clientDirectory, "index.html"), (error) => {
+      if (error) next(error);
+    });
+  });
+}
 app.use((req, res) => sendError(res, req, 404, "NOT_FOUND", "Route not found"));
 app.use((err, req, res, next) => {
   console.error(

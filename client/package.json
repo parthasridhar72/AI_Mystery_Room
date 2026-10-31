@@ -2,6 +2,9 @@
   "name": "ai-mystery-room-client",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20 <25"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",

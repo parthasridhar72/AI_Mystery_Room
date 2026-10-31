@@ -28,6 +28,22 @@ Client: `npm run dev`, `npm run build`, `npm run lint`.
 
 Server: `npm run dev`, `npm start`, `npm run lint`, `npm test` (no test suite has been added yet).
 
+## Deploy with Render and MongoDB Atlas
+
+The repository includes a Render Blueprint at `render.yaml`. It deploys one Node web service that serves both the built React client and the Express API, with MongoDB Atlas for durable case storage. Serving both from one origin keeps guest access cookies first-party. The mock mystery provider is enabled by default, so no Gemini key is needed for the initial deployment.
+
+1. **Push this repository to GitHub.** Keep `client/.env`, `server/.env`, and all credentials out of Git. Only the `.env.example` files belong in the repository.
+2. **Create a MongoDB Atlas deployment.** Create a database user for the application and copy the cluster's application connection string. Replace its username, password, and database name. Encode reserved characters in the username or password as required by MongoDB.
+3. **Create the Render service.** In Render, choose **New + > Blueprint**, connect this GitHub repository, and let Render read `render.yaml`. When prompted, provide the Atlas URI for `MONGODB_URI`; do not put it in the YAML file.
+4. **Allow the service to reach Atlas.** The first deploy can fail its health check until Atlas allows the network connection. In the Render service, open **Connect > Outbound** and copy its outbound IP ranges. Add those ranges to the Atlas project's **Network Access** IP access list, then redeploy. Avoid opening Atlas to all IPs when you can allowlist the service ranges.
+5. **Wait for the deployment to finish.** The health endpoint is `/api/v1/health`. Open the service's `onrender.com` URL; it serves the website and API from the same origin. Create a case and confirm it remains in the archive after refreshing. Case data persists in Atlas across server restarts.
+6. **Optionally enable Gemini.** In the Render service's environment settings, set `AI_PROVIDER=gemini`, add `GEMINI_API_KEY`, and set a currently supported `GEMINI_MODEL`. Save and redeploy. The key must only be set on the server, never on the client.
+7. **For a custom domain,** attach it to this same Render service. The site and API will continue to share one origin.
+
+The Render service name in the Blueprint should be available in your workspace. If it is already taken, change `name` in `render.yaml`. The client uses its own origin for API requests in production. Locally, `client/.env` points it to `http://localhost:4000` while the Vite development server runs on port 5173.
+
+Official setup references: [Render Blueprints](https://render.com/docs/blueprint-spec), [Render Node web services](https://render.com/docs/web-services), [Render outbound IP ranges](https://render.com/docs/outbound-ip-addresses), [MongoDB Atlas IP access list](https://www.mongodb.com/docs/atlas/security/add-ip-address-to-list/), and [connecting to an Atlas cluster](https://www.mongodb.com/docs/atlas/connect-to-database-deployment/).
+
 ## Implementation decisions
 
 - The SPEC.md architecture mentions TypeScript, but this project follows the request to use JavaScript only.
